@@ -1,22 +1,24 @@
 #Deadline submitter for Natron, borrowed heavily from:
 #https://github.com/CGRU/cgru/blob/master/plugins/natron/afanasy.py
 #And Deadline's Nuke submission scripts
+'''
+import NatronDeadline as nd
+reload(nd)
+nd.renderSelected()
 
-#use app1 until i work out how to get the current instance
+
+
+'''
 
 import os
-import time
 import sys
-import re
-import traceback
 import subprocess
 from os.path import expanduser
 
 
 # Natron:
-from NatronEngine import*
-from NatronGui import *
-from PySide.QtGui import *
+import NatronEngine
+import NatronGui
 
 
 def getProjectPaths( i_app):
@@ -82,10 +84,11 @@ def CallDeadlineCommand( arguments ):
 
 def renderSelected():
 	home = expanduser("~")
-	#deadlineTemp = os.path.join( home, "temp" )
+	deadlineTemp = os.path.join( home, "temp" )
 	deadlineTemp = home
 
-	app = natron.getGuiInstance(0) #this will fail with more than 1 instance of Natron running. 
+	app = NatronGui.natron.getActiveInstance()
+	app = NatronGui.natron.getGuiInstance(app.getAppID())
 	nodes = app.getSelectedNodes()
 
 	path =  getProjectPaths(app)['Project']

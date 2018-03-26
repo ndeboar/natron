@@ -12,6 +12,8 @@ from os.path import expanduser
 import NatronEngine
 import NatronGui
 
+def EncodeAsUTF16String( unicodeString ):
+    return unicodeString.decode( "utf-8" ).encode( "utf-16-le" )
 
 def getProjectPaths( i_app):
 
@@ -87,17 +89,22 @@ def renderSelected():
 	proj = app.getProjectParam('projectName').getValue()
 	projPath =  ('%s/%s'%(path,proj))
 
+	index = 0
 	for node in nodes:
 		nameName = node.getLabel()
 		print ("Submitting %s" %nameName)
 		fFrame = node.getParam('firstFrame').get()
 		lFrame = node.getParam('lastFrame').get()
+		writePath = node.getParam('filename').get()
 		jobInfoFile = os.path.join( deadlineTemp, u"natron_submit_info.job")
 		fileHandle = open( jobInfoFile, "w" )
 		fileHandle.write( "Plugin=Natron\n" )
 		fileHandle.write( "Name=%s - %s\n"%(proj, nameName))
 		fileHandle.write( "ConcurrentTasks=3\n")
 		fileHandle.write( "Frames=%d-%d\n" %(fFrame,lFrame) )
+		fileHandle.write( "ChunkSize=5\n" )
+		fileHandle.write( EncodeAsUTF16String( "OutputFilename%s=%s\n" % (index, writePath ) ) )
+		fileHandle.write( EncodeAsUTF16String( "OutputDirectory%s=%s\n" % ( index, path ) ) )
 		fileHandle.close()
 
 		pluginInfoFile = os.path.join( deadlineTemp, u"natron_plugin_info.job")
@@ -107,6 +114,7 @@ def renderSelected():
 		fileHandle.write( "Build=64bit")
 
 		fileHandle.close()
+		index +=1
 
 		print CallDeadlineCommand([jobInfoFile, pluginInfoFile])
 
@@ -118,5 +126,9 @@ tempFrameList = str(int(comp.startFrame())) + "-" + str(int(comp.endFrame()))
 
 fileHandle.write( "Frames=%s\n" % tempFrameList )
 fileHandle.write( "ChunkSize=1\n" )
+
+fileHandle.write( EncodeAsUTF16String( "OutputFilename%s=%s\n" % (index, paddedPath ) ) )
+fileHandle.write( EncodeAsUTF16String( "OutputDirectory%s=%s\n" % ( index, tempPath ) ) )
+i think index can just be any int that for each write node
 
 '''

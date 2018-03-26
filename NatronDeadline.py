@@ -1,14 +1,6 @@
 #Deadline submitter for Natron, borrowed heavily from:
 #https://github.com/CGRU/cgru/blob/master/plugins/natron/afanasy.py
 #And Deadline's Nuke submission scripts
-'''
-import NatronDeadline as nd
-reload(nd)
-nd.renderSelected()
-
-
-
-'''
 
 import os
 import sys
@@ -98,12 +90,14 @@ def renderSelected():
 	for node in nodes:
 		nameName = node.getLabel()
 		print ("Submitting %s" %nameName)
-		fFrame = str(node.getParam('firstFrame').get())
-		lFrame = str(node.getParam('lastFrame').get())
+		fFrame = node.getParam('firstFrame').get()
+		lFrame = node.getParam('lastFrame').get()
 		jobInfoFile = os.path.join( deadlineTemp, u"natron_submit_info.job")
 		fileHandle = open( jobInfoFile, "w" )
 		fileHandle.write( "Plugin=Natron\n" )
 		fileHandle.write( "Name=%s - %s\n"%(proj, nameName))
+		fileHandle.write( "ConcurrentTasks=3\n")
+		fileHandle.write( "Frames=%d-%d\n" %(fFrame,lFrame) )
 		fileHandle.close()
 
 		pluginInfoFile = os.path.join( deadlineTemp, u"natron_plugin_info.job")
@@ -111,6 +105,18 @@ def renderSelected():
 		fileHandle.write( "WriterNodeName=%s\n" % nameName )
 		fileHandle.write( "ProjectFile=%s\n" %projPath )
 		fileHandle.write( "Build=64bit")
+
 		fileHandle.close()
 
 		print CallDeadlineCommand([jobInfoFile, pluginInfoFile])
+
+
+'''
+fileHandle.write( "ConcurrentTasks=%s\n" % dialog.concurrentTasks.value() )
+
+tempFrameList = str(int(comp.startFrame())) + "-" + str(int(comp.endFrame()))
+
+fileHandle.write( "Frames=%s\n" % tempFrameList )
+fileHandle.write( "ChunkSize=1\n" )
+
+'''
